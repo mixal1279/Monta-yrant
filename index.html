@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MontaŻyrant – Montaż klipów dla streamerów</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0C0C10;
+      --surface: #14141A;
+      --border: #1F1F2A;
+      --accent: #FF4D6D;
+      --accent2: #FF9A3C;
+      --text: #EEEEF4;
+      --muted: #6A6A80;
+      --r: 10px;
+    }
+    body { font-family: 'Space Grotesk', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; }
+
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 48px; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0;
+      background: rgba(12,12,16,0.92); backdrop-filter: blur(12px); z-index: 10;
+    }
+    .logo { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 1.05rem; color: var(--text); text-decoration: none; }
+    .logo span { color: var(--accent); }
+    .nav-link { font-size: 0.88rem; color: var(--muted); text-decoration: none; transition: color .2s; }
+    .nav-link:hover { color: var(--text); }
+
+    .hero { max-width: 720px; margin: 0 auto; padding: 88px 24px 72px; text-align: center; }
+    .badge {
+      display: inline-block; font-family: 'Space Mono', monospace;
+      font-size: 0.7rem; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--accent); border: 1px solid rgba(255,77,109,.3);
+      background: rgba(255,77,109,.08); padding: 5px 14px; border-radius: 100px; margin-bottom: 24px;
+    }
+    h1 { font-size: clamp(2.2rem, 6vw, 3.4rem); font-weight: 700; letter-spacing: -.03em; line-height: 1.1; margin-bottom: 20px; }
+    h1 em { font-style: normal; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .hero p { font-size: 1.1rem; color: var(--muted); max-width: 500px; margin: 0 auto; }
+
+    .divider { width: 40px; height: 2px; background: var(--border); margin: 64px auto; }
+
+    .cards { max-width: 880px; margin: 0 auto; padding: 0 24px 72px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 26px; transition: border-color .2s; }
+    .card:hover { border-color: rgba(255,77,109,.3); }
+    .card-icon { font-size: 1.4rem; margin-bottom: 12px; }
+    .card h3 { font-size: .95rem; font-weight: 600; margin-bottom: 7px; }
+    .card p { font-size: .88rem; color: var(--muted); line-height: 1.55; }
+
+    .yt-section { max-width: 660px; margin: 0 auto 72px; padding: 0 24px; }
+    .yt-section h2 { font-size: 1.3rem; font-weight: 600; margin-bottom: 24px; text-align: center; }
+    .yt-box { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent2); border-radius: var(--r); padding: 22px 26px; }
+    .yt-box p { font-size: .9rem; color: #A0A0B8; margin-bottom: 10px; }
+    .yt-box p:last-child { margin-bottom: 0; }
+    .yt-box a { color: var(--accent2); text-decoration: none; }
+    .yt-box a:hover { text-decoration: underline; }
+    .yt-box code { font-family: 'Space Mono', monospace; font-size: .8em; background: var(--border); padding: 2px 7px; border-radius: 4px; color: var(--accent2); }
+
+    footer { border-top: 1px solid var(--border); padding: 26px 48px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+    footer p { font-size: .82rem; color: var(--muted); }
+    footer a { font-size: .82rem; color: var(--muted); text-decoration: none; transition: color .2s; }
+    footer a:hover { color: var(--text); }
+
+    @media (max-width: 600px) { nav { padding: 16px 20px; } footer { padding: 22px 20px; flex-direction: column; align-items: flex-start; } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="./"><span>//</span> MontaŻyrant</a>
+  <a class="nav-link" href="./privacy.html">Polityka prywatności</a>
+</nav>
+
+<section class="hero">
+  <div class="badge">Usługi montażu klipów</div>
+  <h1>Twoje klipy,<br /><em>profesjonalnie.</em></h1>
+  <p>MontaŻyrant to Discord bot do zamawiania usług montażu klipów z rozgrywek i streamów. Prosty flow zamówień, szybka realizacja.</p>
+</section>
+
+<div class="divider"></div>
+
+<section class="cards">
+  <div class="card">
+    <div class="card-icon">🎬</div>
+    <h3>Montaż klipów</h3>
+    <p>Profesjonalne klipy z rozgrywek, streamów i nagrań — bezpośrednio przez Discorda.</p>
+  </div>
+  <div class="card">
+    <div class="card-icon">🛒</div>
+    <h3>Prosty flow zamówień</h3>
+    <p>Wybór pakietu, opcji dodatkowych i przesłanie materiałów — wszystko krok po kroku w jednym kanale Discord.</p>
+  </div>
+  <div class="card">
+    <div class="card-icon">💳</div>
+    <h3>Płatności online</h3>
+    <p>Szybkie opłacenie zamówienia przez bezpieczny link płatniczy (BLIK, przelew).</p>
+  </div>
+  <div class="card">
+    <div class="card-icon">🎟️</div>
+    <h3>Kody rabatowe</h3>
+    <p>Subskrybenci Edzzi_Minecraft na YouTube mogą uzyskać jednorazowy kod rabatowy po weryfikacji subskrypcji.</p>
+  </div>
+  <div class="card">
+    <div class="card-icon">📋</div>
+    <h3>System ticketów</h3>
+    <p>Każde zamówienie ma osobny kanał — śledzenie statusu, aktualizacje i komunikacja w jednym miejscu.</p>
+  </div>
+  <div class="card">
+    <div class="card-icon">⭐</div>
+    <h3>Oceny realizacji</h3>
+    <p>Po zamknięciu ticketu klient może wystawić ocenę i komentarz do wykonanej usługi.</p>
+  </div>
+</section>
+
+<section class="yt-section">
+  <h2>Weryfikacja subskrypcji YouTube</h2>
+  <div class="yt-box">
+    <p>Aby sprawdzić, czy subskrybujesz kanał Edzzi_Minecraft na YouTube i przyznać kod rabatowy, bot prosi o jednorazowy dostęp do Twojego konta Google przez OAuth 2.0.</p>
+    <p>Używamy wyłącznie zakresu <code>youtube.readonly</code> — odczytujemy tylko listę subskrypcji. Nie przechowujemy żadnych danych po zakończeniu weryfikacji.</p>
+    <p>Korzystając z tej funkcji, akceptujesz <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener">Warunki korzystania z YouTube</a>. Możesz cofnąć dostęp w dowolnym momencie przez <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">Uprawnienia konta Google</a>. Polityka prywatności Google: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">policies.google.com/privacy</a>.</p>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 MontaŻyrant · Czituch Industries</p>
+  <a href="./privacy.html">Polityka prywatności</a>
+</footer>
+
+</body>
+</html>
