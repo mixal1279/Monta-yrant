@@ -1,0 +1,18 @@
+name: Deploy do Cloudflare Workers
+
+on:
+  push:
+    branches:
+      - main   # zmień jeśli używasz innej gałęzi
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Deploy przez Wranglera
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
