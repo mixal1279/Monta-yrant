@@ -3,4 +3,4 @@ compatibility_date = "2026-08-04"
 account_id = "1bf7a2788e0a1d36e5aebc15ecf56f9f"
 
 [assets]
-directory = "./public"
+directory = "./public
