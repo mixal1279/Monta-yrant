@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regulamin — MontaŻyrant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #08090a;
+    --surface: #111216;
+    --surface-accent: #1a1c23;
+    --border: #262932;
+    --text: #f8f9fa;
+    --text-dim: #9499a6;
+    --primary: #ff3e3e;
+    --primary-glow: rgba(255, 62, 62, 0.3);
+    --accent: #00f2ff;
+    --success: #00ff88;
+    --warning: #ffaa00;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { background: var(--bg); }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  h1, h2, .display { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  a { color: var(--primary); text-decoration: none; transition: 0.2s ease; }
+  a:hover { color: var(--text); }
+  a:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 4px; }
+
+  nav {
+    position: fixed;
+    top: 0; width: 100%;
+    z-index: 1000;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 5%;
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    background: rgba(8, 9, 10, 0.8);
+  }
+  .logo {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 800;
+    display: flex; align-items: center; gap: 8px;
+    color: var(--text);
+  }
+  .logo span { color: var(--primary); }
+  .logo-icon { width: 24px; height: 24px; background: var(--primary); border-radius: 4px; }
+  nav .back { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-dim); }
+  nav .back:hover { color: var(--text); }
+
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 160px 5% 120px;
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--primary);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 16px;
+  }
+  h1 { font-size: clamp(2rem, 4.5vw, 3rem); margin-bottom: 8px; }
+  .updated { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 50px; }
+
+  .notice {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--warning);
+    border-radius: 8px;
+    padding: 16px 20px;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-bottom: 56px;
+  }
+  .notice strong { color: var(--text); }
+
+  section { margin-bottom: 44px; }
+  section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  section h2 .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--primary);
+  }
+  section p, section li { color: var(--text-dim); font-size: 0.98rem; margin-bottom: 10px; }
+  section ol, section ul { padding-left: 20px; margin-bottom: 10px; }
+  section strong { color: var(--text); font-weight: 600; }
+  .fill {
+    background: rgba(255, 170, 0, 0.12);
+    color: var(--warning);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em;
+  }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 5%;
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">
+    <div class="logo-icon"></div>
+    <span class="logo-text">Monta<span>Ż</span>yrant</span>
+  </a>
+  <a href="index.html" class="back">← wróć do strony głównej</a>
+</nav>
+
+<main>
+  <span class="eyebrow">Dokument prawny</span>
+  <h1>Regulamin świadczenia usług</h1>
+  <p class="updated mono">Ostatnia aktualizacja: <span class="fill" id="dataAktualizacji">[data]</span></p>
+
+  <div class="notice">
+    <strong>Uwaga:</strong> to jest szkic regulaminu przygotowany jako punkt wyjścia, nie porada prawna. Przed publikacją warto skonsultować go z prawnikiem lub doradcą — szczególnie punkty 10 i 13 dotyczące odstąpienia od umowy i danych osobowych, bo tu przepisy bywają szczegółowe.
+  </div>
+
+  <section>
+    <h2><span class="num">01</span> Postanowienia ogólne</h2>
+    <p>Niniejszy regulamin określa zasady świadczenia usług montażu wideo (dalej: „Usługi") przez <strong>Czituch Industries</strong> — Michał Kowalczyk, działającego jako osoba fizyczna nieprowadząca zarejestrowanej działalności gospodarczej (dalej: „Usługodawca"), za pośrednictwem serwera Discord oraz bota MontaŻyrant.</p>
+    <p>Kontakt z Usługodawcą: <a href="mailto:michalkowalczyk489@gmail.com">michalkowalczyk489@gmail.com</a> lub przez ticket na serwerze Discord.</p>
+    <p>Złożenie zamówienia lub skorzystanie z funkcji bota jest równoznaczne z akceptacją niniejszego regulaminu.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">02</span> Zakres usługi</h2>
+    <p>MontaŻyrant to bot Discord ułatwiający zamawianie usług montażu klipów gamingowych. Usługa obejmuje: proces składania zamówień, system ticketów, obsługę płatności oraz opcjonalną funkcję weryfikacji subskrypcji YouTube uprawniającej do kodu rabatowego.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">03</span> Wymagania wiekowe</h2>
+    <p>Z Usługi może korzystać osoba, która ukończyła 13 lat. Korzystając z Usługi, oświadczasz, że spełniasz ten wymóg.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">04</span> Weryfikacja subskrypcji YouTube</h2>
+    <p>Usługa opcjonalnie wykorzystuje Google OAuth 2.0 oraz YouTube Data API v3 do zweryfikowania Twojej subskrypcji kanału Edzzi_Minecraft. Rozpoczynając weryfikację, autoryzujesz Usługę do jednorazowego odczytu listy Twoich subskrypcji YouTube. Nie przechowujemy tych danych po zakończeniu weryfikacji. Dostęp możesz cofnąć w dowolnym momencie w <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">ustawieniach uprawnień konta Google</a>.</p>
+    <p>Korzystanie z funkcji weryfikacji YouTube podlega również <a href="https://www.youtube.com/t/terms" target="_blank" rel="noopener">Warunkom korzystania z usługi YouTube</a>.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">05</span> Kody rabatowe</h2>
+    <p>Kody rabatowe przyznawane w ramach weryfikacji subskrypcji YouTube są jednorazowego użytku, nieprzenoszalne i przypisane do konkretnego konta Discord. Próba nadużycia, powielenia lub przekazania kodu innej osobie może skutkować jego unieważnieniem.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">06</span> Składanie zamówień</h2>
+    <ol>
+      <li>Zamówienie składane jest poprzez otwarcie ticketu na serwerze Discord Usługodawcy.</li>
+      <li>Klient zobowiązany jest do przekazania materiału źródłowego oraz jasnego opisu oczekiwanego efektu (np. długość, styl, fragmenty do wykorzystania).</li>
+      <li>Wszystkie zamówienia podlegają dostępności oraz potwierdzeniu przez Usługodawcę. Realizacja rozpoczyna się po potwierdzeniu szczegółów i zaksięgowaniu płatności.</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2><span class="num">07</span> Płatności</h2>
+    <p>Płatności realizowane są elektronicznie za pośrednictwem operatorów płatności Przelewy24 i/lub Mollie. Usługodawca nie przechowuje danych kart płatniczych Klienta — obsługę płatności prowadzą wyłącznie zewnętrzni, licencjonowani operatorzy.</p>
+    <p>Ceny podane w ofercie są cenami ostatecznymi, wyrażonymi w złotych polskich (PLN). Po potwierdzeniu zamówienia i rozpoczęciu realizacji, zwroty przyznawane są według uznania Usługodawcy, zgodnie z zasadami opisanymi w punkcie 10 niniejszego regulaminu.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">08</span> Zachowanie użytkownika</h2>
+    <p>Zobowiązujesz się nie nadużywać Usługi, w tym w szczególności: nie próbować obchodzić lub wykorzystywać systemu kodów rabatowych niezgodnie z przeznaczeniem, nie spamować bota oraz nie zakłócać zamówień innych użytkowników.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">09</span> Realizacja i poprawki</h2>
+    <p>Orientacyjny czas realizacji przekazywany jest Klientowi indywidualnie przy otwarciu ticketu i zależy od aktualnej kolejki zleceń. Gotowy materiał przekazywany jest za pośrednictwem Discorda.</p>
+    <p>Liczba bezpłatnych rund poprawek zależy od wybranego pakietu usługi, zgodnie z aktualną ofertą. Reklamacje dotyczące jakości wykonanej usługi Klient może zgłaszać poprzez ticket na Discordzie w terminie 7 dni od otrzymania gotowego materiału.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">10</span> Odstąpienie od umowy i zwroty</h2>
+    <p>Klient przyjmuje do wiadomości, że usługa montażu jest usługą wykonywaną na indywidualne zamówienie, dostosowaną do jego wymagań — w związku z czym, zgodnie z art. 38 ustawy o prawach konsumenta, po rozpoczęciu realizacji zamówienia prawo odstąpienia od umowy w terminie 14 dni może nie przysługiwać w pełnym zakresie. Wymaga to jednak uzyskania wyraźnej zgody Klienta przed rozpoczęciem realizacji — ten mechanizm warto dopracować prawnie przed publikacją.</p>
+    <p>Przed rozpoczęciem realizacji zamówienia (tj. przed potwierdzeniem szczegółów przez Usługodawcę) Klient może zrezygnować z zamówienia i otrzymać pełny zwrot płatności. Po rozpoczęciu realizacji zwrot przyznawany jest według uznania Usługodawcy, w zależności od stopnia zaawansowania prac.</p>
+    <p>Powyższe postanowienia nie ograniczają ustawowych praw konsumenta wynikających z rękojmi za wady (art. 556 i nast. Kodeksu cywilnego) — jeżeli wykonana usługa jest niezgodna z umową, Klientowi przysługują ustawowe uprawnienia niezależnie od terminu reklamacji określonego w punkcie 9.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">11</span> Prawa autorskie</h2>
+    <p>Klient oświadcza, że posiada prawa do materiału źródłowego przekazanego do montażu lub jest uprawniony do dysponowania nim w zakresie niezbędnym do realizacji usługi.</p>
+    <p>Po dokonaniu pełnej płatności prawa do gotowego materiału (montażu) przechodzą na Klienta, z zastrzeżeniem, że Usługodawca zachowuje prawo do wykorzystania fragmentów pracy w swoim portfolio, chyba że Klient wyraźnie zastrzeże inaczej przy składaniu zamówienia.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">12</span> Ograniczenie odpowiedzialności</h2>
+    <p>Usługa świadczona jest w stanie „takim, jaki jest", bez żadnych gwarancji. Usługodawca nie ponosi odpowiedzialności za szkody wynikające z korzystania z Usługi, w tym za problemy związane z obsługą płatności przez zewnętrznych operatorów lub opóźnienia w dostarczeniu zamówienia.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">13</span> Dane osobowe</h2>
+    <p>Zasady przetwarzania danych osobowych Klientów określa odrębna <a href="privacy.html">Polityka prywatności</a>.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">14</span> Zmiany regulaminu</h2>
+    <p>Usługodawca zastrzega sobie prawo do zmiany niniejszego regulaminu w dowolnym momencie. Dalsze korzystanie z Usługi po wprowadzeniu zmian oznacza ich akceptację. Zmiany nie mają wpływu na zamówienia złożone przed ich wejściem w życie.</p>
+    <p>W sprawach nieuregulowanych niniejszym regulaminem zastosowanie mają przepisy prawa polskiego, w tym Kodeksu cywilnego oraz ustawy o prawach konsumenta.</p>
+  </section>
+
+  <section>
+    <h2><span class="num">15</span> Kontakt</h2>
+    <p>W sprawach dotyczących niniejszego regulaminu pisz na: <a href="mailto:michalkowalczyk489@gmail.com">michalkowalczyk489@gmail.com</a></p>
+  </section>
+</main>
+
+<footer>
+  © MontaŻyrant · <a href="index.html">Strona główna</a>
+</footer>
+
+<script>
+  // Przy każdej zmianie treści regulaminu zmień TYLKO tę jedną linijkę:
+  const OSTATNIA_AKTUALIZACJA = "10 lipca 2026";
+  document.getElementById('dataAktualizacji').textContent = OSTATNIA_AKTUALIZACJA;
+</script>
+
+</body>
+</html>
