@@ -1,4 +1,4 @@
-name: Build MontaZyrant Bot for Pterodactyl
+name: Build MontaZyrant Bot dependencies
 
 on:
   workflow_dispatch:
@@ -22,45 +22,39 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: ""
 
-      - name: Sprawdź archiwum źródłowe
+      - name: Sprawdź i rozpakuj kod źródłowy
         run: |
-          test -f bot-source.tar.gz || {
-            echo "::error::Brak bot-source.tar.gz w głównym katalogu repozytorium."
-            exit 1
-          }
-          mkdir -p bot
+          set -euo pipefail
+          test -f bot-source.tar.gz
           tar -tzf bot-source.tar.gz >/dev/null
+          mkdir -p bot
+          tar -xzf bot-source.tar.gz -C bot
 
-      - name: Rozpakuj kod bota
-        run: tar -xzf bot-source.tar.gz -C bot
-
-      - name: Sprawdź strukturę projektu
+      - name: Sprawdź projekt
         working-directory: bot
         run: |
           test -f package.json
           test -f index.js
           node -e "const p=require('./package.json'); if (!p.dependencies || !p.dependencies['better-sqlite3']) process.exit(1)"
 
-      - name: Zainstaluj zależności i zbuduj moduł SQLite
+      - name: Zbuduj node_modules dla Node.js 22 Linux x64
         working-directory: bot
         run: |
           npm install --omit=dev --no-audit --no-fund --maxsockets=2 --build-from-source
           node -e "require('better-sqlite3'); console.log('better-sqlite3 działa')"
 
-      - name: Usuń pliki poufne i zbędne
+      - name: Spakuj wyłącznie node_modules
         run: |
-          find bot -type f \( -name ".env" -o -name ".env.*" \) -delete
-          rm -rf bot/.git bot/node_modules/.cache
+          set -euo pipefail
+          test -d bot/node_modules
+          tar -czf node_modules.tar.gz -C bot node_modules
+          tar -tzf node_modules.tar.gz | head -n 10
 
-      - name: Spakuj gotowy bot dla Pterodactyl
-        run: tar -czf montazyrant-bot-node22-linux-x64.tar.gz -C bot .
-
-      - name: Udostępnij paczkę do pobrania
+      - name: Udostępnij paczkę zależności
         uses: actions/upload-artifact@v4
         with:
-          name: montazyrant-bot-node22-linux-x64
-          path: montazyrant-bot-node22-linux-x64.tar.gz
+          name: montazyrant-node-modules-node22-linux-x64
+          path: node_modules.tar.gz
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 3
