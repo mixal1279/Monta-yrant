@@ -17,8 +17,8 @@ jobs:
       image: node:22-alpine
 
     steps:
-      - name: Zainstaluj narzędzia kompilacji i SFTP
-        run: apk add --no-cache bash python3 make g++ openssh-client lftp bind-tools
+      - name: Zainstaluj narzędzia kompilacji, ZIP i SFTP
+        run: apk add --no-cache bash python3 make g++ openssh-client lftp bind-tools zip
 
       - name: Pobierz repozytorium
         uses: actions/checkout@v4
@@ -42,12 +42,22 @@ jobs:
           node -e "require('better-sqlite3'); console.log('better-sqlite3 działa na Alpine')"
           test -f node_modules/better-sqlite3/build/Release/better_sqlite3.node
 
-      - name: Przygotuj katalog node_modules
+      - name: Przygotuj i sprawdź archiwum ZIP
         run: |
           set -eu
           test -d bot/node_modules
           mkdir -p deploy
           cp -a bot/node_modules deploy/node_modules
+
+          ARCHIVE="$RUNNER_TEMP/node_modules.zip"
+          cd deploy
+          zip -qr "$ARCHIVE" node_modules
+          cd -
+
+          test -s "$ARCHIVE"
+          python3 -m zipfile -t "$ARCHIVE"
+          echo "Gotowe archiwum:"
+          ls -lh "$ARCHIVE"
 
       - name: Diagnostyka DNS serwera SFTP
         env:
@@ -105,7 +115,7 @@ jobs:
           cat "$plik_kluczy" >> "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
 
-      - name: Wyślij node_modules przez SFTP
+      - name: Wyślij archiwum ZIP przez SFTP
         env:
           SFTP_HOST: vps2.tofikhost.ovh
           SFTP_PORT: "2022"
@@ -115,6 +125,8 @@ jobs:
           set -eu
           test -n "$SFTP_USERNAME" || { echo "::error::Brak SFTP_USERNAME"; exit 1; }
           test -n "$SFTP_PASSWORD" || { echo "::error::Brak SFTP_PASSWORD"; exit 1; }
+          ARCHIVE="$RUNNER_TEMP/node_modules.zip"
+          test -s "$ARCHIVE"
 
           plik_konfig="$(mktemp)"
           trap 'rm -f "$plik_konfig"' EXIT
@@ -123,11 +135,12 @@ jobs:
           {
             printf 'set cmd:fail-exit yes\n'
             printf 'set sftp:auto-confirm yes\n'
-            printf 'set net:timeout 20\n'
+            printf 'set net:timeout 30\n'
             printf 'set net:max-retries 2\n'
             printf 'open -u "%s","%s" sftp://%s:%s\n' "$SFTP_USERNAME" "$SFTP_PASSWORD" "$SFTP_HOST" "$SFTP_PORT"
-            printf 'mirror --reverse --verbose --no-perms deploy/ /\n'
+            printf 'put "%s" -o node_modules.zip\n' "$ARCHIVE"
             printf 'bye\n'
           } > "$plik_konfig"
 
           lftp -f "$plik_konfig"
+          echo "Archiwum node_modules.zip wysłane na serwer."
