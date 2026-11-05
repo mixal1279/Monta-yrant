@@ -17,8 +17,8 @@ jobs:
       image: node:22-alpine
 
     steps:
-      - name: Zainstaluj narzędzia kompilacji
-        run: apk add --no-cache bash python3 make g++ openssh-client
+      - name: Zainstaluj narzędzia kompilacji i SFTP
+        run: apk add --no-cache bash python3 make g++ openssh-client lftp bind-tools
 
       - name: Pobierz repozytorium
         uses: actions/checkout@v4
@@ -46,17 +46,47 @@ jobs:
         run: |
           set -eu
           test -d bot/node_modules
-          mkdir -p deploy/node_modules
-          cp -a bot/node_modules/. deploy/node_modules/
+          mkdir -p deploy
+          cp -a bot/node_modules deploy/node_modules
 
-      - name: Wyślij wyłącznie node_modules przez SFTP
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
-        with:
-          server: ${{ secrets.SFTP_HOST }}
-          port: ${{ secrets.SFTP_PORT }}
-          username: ${{ secrets.SFTP_USERNAME }}
-          password: ${{ secrets.SFTP_PASSWORD }}
-          local_path: ./deploy/*
-          remote_path: /
-          sftp_only: true
-          delete_remote_files: false
+      - name: Sprawdź konfigurację i dostępność serwera SFTP
+        env:
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+        run: |
+          set -eu
+          test -n "$SFTP_HOST" || { echo "::error::Brak SFTP_HOST"; exit 1; }
+          test -n "$SFTP_PORT" || { echo "::error::Brak SFTP_PORT"; exit 1; }
+          case "$SFTP_PORT" in *[!0-9]*|'') echo "::error::SFTP_PORT musi być numerem"; exit 1;; esac
+          echo "Sprawdzam DNS dla hosta SFTP..."
+          nslookup "$SFTP_HOST"
+          echo "Sprawdzam połączenie TCP na porcie $SFTP_PORT..."
+          nc -z -w 10 "$SFTP_HOST" "$SFTP_PORT"
+
+      - name: Wyślij node_modules przez SFTP
+        env:
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+          SFTP_USERNAME: ${{ secrets.SFTP_USERNAME }}
+          SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
+        run: |
+          set -eu
+          test -n "$SFTP_USERNAME" || { echo "::error::Brak SFTP_USERNAME"; exit 1; }
+          test -n "$SFTP_PASSWORD" || { echo "::error::Brak SFTP_PASSWORD"; exit 1; }
+
+          # lftp obsługuje logowanie hasłem przez SFTP; poprzednia akcja miała inną kolejność argumentów.
+          plik_konfig="$(mktemp)"
+          trap 'rm -f "$plik_konfig"' EXIT
+          chmod 600 "$plik_konfig"
+
+          {
+            printf 'set cmd:fail-exit yes\n'
+            printf 'set sftp:auto-confirm yes\n'
+            printf 'set net:timeout 20\n'
+            printf 'set net:max-retries 2\n'
+            printf 'open -u "%s","%s" sftp://%s:%s\n' "$SFTP_USERNAME" "$SFTP_PASSWORD" "$SFTP_HOST" "$SFTP_PORT"
+            printf 'mirror --reverse --verbose --no-perms deploy/ /\n'
+            printf 'bye\n'
+          } > "$plik_konfig"
+
+          lftp -f "$plik_konfig"
