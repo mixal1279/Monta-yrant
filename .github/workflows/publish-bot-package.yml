@@ -1,52 +1,40 @@
-name: Publish MontaZyrant bot package
+name: Upload MontaZyrant node_modules to Pterodactyl
 
 on:
   workflow_run:
-    workflows: ["Build MontaZyrant Bot for Pterodactyl"]
+    workflows: ["Build MontaZyrant Bot dependencies"]
     types: [completed]
 
 permissions:
   actions: read
-  contents: write
 
 jobs:
-  publish:
+  upload:
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
     runs-on: ubuntu-22.04
     steps:
-      - name: Pobierz repozytorium
-        uses: actions/checkout@v4
-        with:
-          ref: main
-
-      - name: Pobierz artefakt z kompilacji
+      - name: Pobierz paczkę node_modules
         uses: actions/download-artifact@v4
         with:
-          name: montazyrant-bot-node22-linux-x64
+          name: montazyrant-node-modules-node22-linux-x64
           path: artifact
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Przygotuj paczke
-        shell: bash
+      - name: Sprawdź paczkę
         run: |
           set -euo pipefail
-          PACZKA="$(find artifact -maxdepth 2 -type f -name 'montazyrant-bot-node22-linux-x64.tar.gz' -print -quit)"
-          test -n "$PACZKA"
-          mkdir -p deploy
-          install -m 0644 "$PACZKA" deploy/montazyrant-bot-node22-linux-x64.tar.gz
-          test ! -e deploy/.env
+          test -s artifact/node_modules.tar.gz
+          tar -tzf artifact/node_modules.tar.gz >/dev/null
 
-      - name: Zapisz paczke w repozytorium
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add deploy/montazyrant-bot-node22-linux-x64.tar.gz
-          if git diff --cached --quiet; then
-            echo "Paczka nie zmienila sie — brak nowego commita."
-            exit 0
-          fi
-          git commit -m "Publish built bot package"
-          git push
+      - name: Wyślij wyłącznie node_modules przez SFTP
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.6
+        with:
+          server: ${{ secrets.SFTP_HOST }}
+          port: ${{ secrets.SFTP_PORT }}
+          username: ${{ secrets.SFTP_USERNAME }}
+          password: ${{ secrets.SFTP_PASSWORD }}
+          local_path: ./artifact/node_modules.tar.gz
+          remote_path: /
+          sftp_only: true
+          delete_remote_files: false
