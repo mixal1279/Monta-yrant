@@ -18,8 +18,7 @@ jobs:
 
     steps:
       - name: Zainstaluj narzędzia kompilacji
-        run: |
-          apk add --no-cache bash python3 make g++ openssh-client
+        run: apk add --no-cache bash python3 make g++ openssh-client
 
       - name: Pobierz repozytorium
         uses: actions/checkout@v4
@@ -43,16 +42,14 @@ jobs:
           node -e "require('better-sqlite3'); console.log('better-sqlite3 działa na Alpine')"
           test -f node_modules/better-sqlite3/build/Release/better_sqlite3.node
 
-      - name: Przygotuj katalog do wysłania
+      - name: Przygotuj katalog node_modules
         run: |
           set -eu
           test -d bot/node_modules
           mkdir -p deploy/node_modules
           cp -a bot/node_modules/. deploy/node_modules/
-          # Minimalny manifest zapobiega ponownej instalacji pełnych zależności na hostingu.
-          printf '{}\n' > deploy/package.json
 
-      - name: Wyślij node_modules i minimalny package.json przez SFTP
+      - name: Wyślij wyłącznie node_modules przez SFTP
         uses: wlixcc/SFTP-Deploy-Action@v1.2.6
         with:
           server: ${{ secrets.SFTP_HOST }}
