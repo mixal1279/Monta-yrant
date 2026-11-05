@@ -49,24 +49,19 @@ jobs:
           mkdir -p deploy
           cp -a bot/node_modules deploy/node_modules
 
-      - name: Sprawdź konfigurację i dostępność serwera SFTP
+      - name: Sprawdź DNS i port SFTP
         env:
-          SFTP_HOST: ${{ secrets.SFTP_HOST }}
-          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+          SFTP_PORT: "2022"
         run: |
           set -eu
-          test -n "$SFTP_HOST" || { echo "::error::Brak SFTP_HOST"; exit 1; }
-          test -n "$SFTP_PORT" || { echo "::error::Brak SFTP_PORT"; exit 1; }
-          case "$SFTP_PORT" in *[!0-9]*|'') echo "::error::SFTP_PORT musi być numerem"; exit 1;; esac
-          echo "Sprawdzam DNS dla hosta SFTP..."
-          nslookup "$SFTP_HOST"
-          echo "Sprawdzam połączenie TCP na porcie $SFTP_PORT..."
-          nc -z -w 10 "$SFTP_HOST" "$SFTP_PORT"
+          echo "Sprawdzam DNS dla vps2.tokihost.ovh..."
+          nslookup vps2.tokihost.ovh
+          echo "Sprawdzam port TCP $SFTP_PORT..."
+          nc -z -w 10 vps2.tokihost.ovh "$SFTP_PORT"
 
       - name: Wyślij node_modules przez SFTP
         env:
-          SFTP_HOST: ${{ secrets.SFTP_HOST }}
-          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+          SFTP_PORT: "2022"
           SFTP_USERNAME: ${{ secrets.SFTP_USERNAME }}
           SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
         run: |
@@ -74,7 +69,6 @@ jobs:
           test -n "$SFTP_USERNAME" || { echo "::error::Brak SFTP_USERNAME"; exit 1; }
           test -n "$SFTP_PASSWORD" || { echo "::error::Brak SFTP_PASSWORD"; exit 1; }
 
-          # lftp obsługuje logowanie hasłem przez SFTP; poprzednia akcja miała inną kolejność argumentów.
           plik_konfig="$(mktemp)"
           trap 'rm -f "$plik_konfig"' EXIT
           chmod 600 "$plik_konfig"
@@ -84,7 +78,7 @@ jobs:
             printf 'set sftp:auto-confirm yes\n'
             printf 'set net:timeout 20\n'
             printf 'set net:max-retries 2\n'
-            printf 'open -u "%s","%s" sftp://%s:%s\n' "$SFTP_USERNAME" "$SFTP_PASSWORD" "$SFTP_HOST" "$SFTP_PORT"
+            printf 'open -u "%s","%s" sftp://vps2.tokihost.ovh:%s\n' "$SFTP_USERNAME" "$SFTP_PASSWORD" "$SFTP_PORT"
             printf 'mirror --reverse --verbose --no-perms deploy/ /\n'
             printf 'bye\n'
           } > "$plik_konfig"
