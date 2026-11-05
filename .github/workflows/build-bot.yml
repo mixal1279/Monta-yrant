@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Zainstaluj narzędzia kompilacji i SFTP
-        run: apk add --no-cache bash python3 make g++ openssh-client lftp
+        run: apk add --no-cache bash python3 make g++ openssh-client lftp bind-tools
 
       - name: Pobierz repozytorium
         uses: actions/checkout@v4
@@ -49,7 +49,31 @@ jobs:
           mkdir -p deploy
           cp -a bot/node_modules deploy/node_modules
 
-      - name: Dodaj klucz hosta SFTP
+      - name: Diagnostyka DNS serwera SFTP
+        env:
+          SFTP_HOST: vps2.tofikhost.ovh
+        run: |
+          set -eu
+          echo "Sprawdzam DNS: $SFTP_HOST"
+          if ! nslookup "$SFTP_HOST"; then
+            echo "::error::DNS nie rozwiązuje hosta SFTP."
+            exit 1
+          fi
+
+      - name: Diagnostyka portu TCP SFTP
+        env:
+          SFTP_HOST: vps2.tofikhost.ovh
+          SFTP_PORT: "2022"
+        run: |
+          set -eu
+          echo "Sprawdzam TCP: $SFTP_HOST:$SFTP_PORT"
+          if ! nc -z -w 10 "$SFTP_HOST" "$SFTP_PORT"; then
+            echo "::error::Host rozwiązuje się przez DNS, ale port TCP SFTP jest niedostępny z GitHub Actions."
+            exit 1
+          fi
+          echo "Port TCP jest osiągalny."
+
+      - name: Pobierz klucz hosta SSH
         env:
           SFTP_HOST: vps2.tofikhost.ovh
           SFTP_PORT: "2022"
@@ -57,7 +81,13 @@ jobs:
           set -eu
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
-          ssh-keyscan -p "$SFTP_PORT" -H "$SFTP_HOST" >> "$HOME/.ssh/known_hosts"
+          echo "Pobieram klucz SSH z $SFTP_HOST:$SFTP_PORT"
+          if ! ssh-keyscan -T 10 -p "$SFTP_PORT" -H "$SFTP_HOST" 2>&1 | tee "$RUNNER_TEMP/ssh-keyscan.log" | grep -q "ssh-"; then
+            cat "$RUNNER_TEMP/ssh-keyscan.log"
+            echo "::error::Port TCP odpowiada, ale serwer nie zwrócił klucza SSH."
+            exit 1
+          fi
+          ssh-keyscan -T 10 -p "$SFTP_PORT" -H "$SFTP_HOST" >> "$HOME/.ssh/known_hosts" 2>/dev/null
           test -s "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
 
