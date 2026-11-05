@@ -6,6 +6,7 @@ on:
     paths:
       - "bot-source.tar.gz"
       - ".github/workflows/build-bot.yml"
+      - ".github/workflows/publish-bot-package.yml"
 
 permissions:
   contents: read
