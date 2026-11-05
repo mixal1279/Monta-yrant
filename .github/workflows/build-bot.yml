@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Zainstaluj narzędzia kompilacji i SFTP
-        run: apk add --no-cache bash python3 make g++ openssh-client lftp bind-tools
+        run: apk add --no-cache bash python3 make g++ openssh-client lftp
 
       - name: Pobierz repozytorium
         uses: actions/checkout@v4
@@ -49,23 +49,30 @@ jobs:
           mkdir -p deploy
           cp -a bot/node_modules deploy/node_modules
 
-      - name: Sprawdź DNS i port SFTP
+      - name: Dodaj klucz hosta SFTP
         env:
-          SFTP_PORT: "2022"
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_PORT: ${{ secrets.SFTP_PORT }}
         run: |
           set -eu
-          echo "Sprawdzam DNS dla vps2.tokihost.ovh..."
-          nslookup vps2.tokihost.ovh
-          echo "Sprawdzam port TCP $SFTP_PORT..."
-          nc -z -w 10 vps2.tokihost.ovh "$SFTP_PORT"
+          test -n "$SFTP_HOST" || { echo "::error::Brak SFTP_HOST"; exit 1; }
+          test -n "$SFTP_PORT" || { echo "::error::Brak SFTP_PORT"; exit 1; }
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          ssh-keyscan -p "$SFTP_PORT" -H "$SFTP_HOST" >> "$HOME/.ssh/known_hosts"
+          test -s "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
 
       - name: Wyślij node_modules przez SFTP
         env:
-          SFTP_PORT: "2022"
+          SFTP_HOST: ${{ secrets.SFTP_HOST }}
+          SFTP_PORT: ${{ secrets.SFTP_PORT }}
           SFTP_USERNAME: ${{ secrets.SFTP_USERNAME }}
           SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
         run: |
           set -eu
+          test -n "$SFTP_HOST" || { echo "::error::Brak SFTP_HOST"; exit 1; }
+          test -n "$SFTP_PORT" || { echo "::error::Brak SFTP_PORT"; exit 1; }
           test -n "$SFTP_USERNAME" || { echo "::error::Brak SFTP_USERNAME"; exit 1; }
           test -n "$SFTP_PASSWORD" || { echo "::error::Brak SFTP_PASSWORD"; exit 1; }
 
@@ -78,7 +85,7 @@ jobs:
             printf 'set sftp:auto-confirm yes\n'
             printf 'set net:timeout 20\n'
             printf 'set net:max-retries 2\n'
-            printf 'open -u "%s","%s" sftp://vps2.tokihost.ovh:%s\n' "$SFTP_USERNAME" "$SFTP_PASSWORD" "$SFTP_PORT"
+            printf 'open -u "%s","%s" sftp://%s:%s\n' "$SFTP_USERNAME" "$SFTP_PASSWORD" "$SFTP_HOST" "$SFTP_PORT"
             printf 'mirror --reverse --verbose --no-perms deploy/ /\n'
             printf 'bye\n'
           } > "$plik_konfig"
