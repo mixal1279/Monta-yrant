@@ -1,0 +1,65 @@
+name: Build MontaZyrant Bot for Pterodactyl
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "bot-source.tar.gz"
+      - ".github/workflows/build-bot.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Pobierz repozytorium
+        uses: actions/checkout@v4
+
+      - name: Skonfiguruj Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: ""
+
+      - name: Sprawdź archiwum źródłowe
+        run: |
+          test -f bot-source.tar.gz || {
+            echo "::error::Brak bot-source.tar.gz w głównym katalogu repozytorium."
+            exit 1
+          }
+          mkdir -p bot
+          tar -tzf bot-source.tar.gz >/dev/null
+
+      - name: Rozpakuj kod bota
+        run: tar -xzf bot-source.tar.gz -C bot
+
+      - name: Sprawdź strukturę projektu
+        working-directory: bot
+        run: |
+          test -f package.json
+          test -f index.js
+          node -e "const p=require('./package.json'); if (!p.dependencies || !p.dependencies['better-sqlite3']) process.exit(1)"
+
+      - name: Zainstaluj zależności i zbuduj moduł SQLite
+        working-directory: bot
+        run: |
+          npm install --omit=dev --no-audit --no-fund --maxsockets=2 --build-from-source
+          node -e "require('better-sqlite3'); console.log('better-sqlite3 działa')"
+
+      - name: Usuń pliki poufne i zbędne
+        run: |
+          find bot -type f \( -name ".env" -o -name ".env.*" \) -delete
+          rm -rf bot/.git bot/node_modules/.cache
+
+      - name: Spakuj gotowy bot dla Pterodactyl
+        run: tar -czf montazyrant-bot-node22-linux-x64.tar.gz -C bot .
+
+      - name: Udostępnij paczkę do pobrania
+        uses: actions/upload-artifact@v4
+        with:
+          name: montazyrant-bot-node22-linux-x64
+          path: montazyrant-bot-node22-linux-x64.tar.gz
+          if-no-files-found: error
+          retention-days: 14
