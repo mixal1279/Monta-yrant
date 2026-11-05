@@ -13,51 +13,53 @@ permissions:
 jobs:
   build-and-upload:
     runs-on: ubuntu-22.04
+    container:
+      image: node:22-alpine
+
     steps:
+      - name: Zainstaluj narzędzia kompilacji
+        run: |
+          apk add --no-cache bash python3 make g++ openssh-client
+
       - name: Pobierz repozytorium
         uses: actions/checkout@v4
 
-      - name: Skonfiguruj Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Sprawdź i rozpakuj kod źródłowy
+      - name: Rozpakuj i sprawdź kod źródłowy
         run: |
-          set -euo pipefail
+          set -eu
           test -f bot-source.tar.gz
           tar -tzf bot-source.tar.gz >/dev/null
           mkdir -p bot
           tar -xzf bot-source.tar.gz -C bot
+          test -f bot/package.json
+          test -f bot/index.js
+          node -e "const p=require('./bot/package.json'); if (!p.dependencies?.['better-sqlite3']) process.exit(1)"
 
-      - name: Sprawdź projekt
+      - name: Zbuduj zależności dla Node 22 i Alpine Linux
         working-directory: bot
         run: |
-          test -f package.json
-          test -f index.js
-          node -e "const p=require('./package.json'); if (!p.dependencies || !p.dependencies['better-sqlite3']) process.exit(1)"
-
-      - name: Zbuduj node_modules dla Node.js 22 Linux x64
-        working-directory: bot
-        run: |
+          set -eu
           npm install --omit=dev --no-audit --no-fund --maxsockets=2 --build-from-source
-          node -e "require('better-sqlite3'); console.log('better-sqlite3 działa')"
+          node -e "require('better-sqlite3'); console.log('better-sqlite3 działa na Alpine')"
+          test -f node_modules/better-sqlite3/build/Release/better_sqlite3.node
 
-      - name: Spakuj wyłącznie node_modules
+      - name: Przygotuj katalog do wysłania
         run: |
-          set -euo pipefail
+          set -eu
           test -d bot/node_modules
-          tar -czf node_modules.tar.gz -C bot node_modules
-          tar -tzf node_modules.tar.gz >/dev/null
+          mkdir -p deploy/node_modules
+          cp -a bot/node_modules/. deploy/node_modules/
+          # Minimalny manifest zapobiega ponownej instalacji pełnych zależności na hostingu.
+          printf '{}\n' > deploy/package.json
 
-      - name: Wyślij archiwum node_modules na Pterodactyl przez SFTP
+      - name: Wyślij node_modules i minimalny package.json przez SFTP
         uses: wlixcc/SFTP-Deploy-Action@v1.2.6
         with:
           server: ${{ secrets.SFTP_HOST }}
           port: ${{ secrets.SFTP_PORT }}
           username: ${{ secrets.SFTP_USERNAME }}
           password: ${{ secrets.SFTP_PASSWORD }}
-          local_path: ./node_modules.tar.gz
+          local_path: ./deploy/*
           remote_path: /
           sftp_only: true
           delete_remote_files: false
