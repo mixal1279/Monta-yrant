@@ -55,10 +55,7 @@ jobs:
         run: |
           set -eu
           echo "Sprawdzam DNS: $SFTP_HOST"
-          if ! nslookup "$SFTP_HOST"; then
-            echo "::error::DNS nie rozwiązuje hosta SFTP."
-            exit 1
-          fi
+          nslookup "$SFTP_HOST"
 
       - name: Diagnostyka portu TCP SFTP
         env:
@@ -67,11 +64,24 @@ jobs:
         run: |
           set -eu
           echo "Sprawdzam TCP: $SFTP_HOST:$SFTP_PORT"
-          if ! nc -z -w 10 "$SFTP_HOST" "$SFTP_PORT"; then
-            echo "::error::Host rozwiązuje się przez DNS, ale port TCP SFTP jest niedostępny z GitHub Actions."
+          nc -z -w 10 "$SFTP_HOST" "$SFTP_PORT"
+          echo "Port TCP jest osiągalny."
+
+      - name: Sprawdź banner SSH serwera
+        env:
+          SFTP_HOST: vps2.tofikhost.ovh
+          SFTP_PORT: "2022"
+        run: |
+          set -eu
+          wynik="$RUNNER_TEMP/ssh-banner.txt"
+          echo "Odczytuję banner SSH z $SFTP_HOST:$SFTP_PORT"
+          timeout 8 nc -v -w 5 "$SFTP_HOST" "$SFTP_PORT" </dev/null >"$wynik" 2>&1 || true
+          cat "$wynik"
+          if ! grep -q "SSH-" "$wynik"; then
+            echo "::error::Port TCP przyjmuje połączenie, ale nie zwraca bannera SSH. Sprawdź w panelu hostingu, czy port 2022 jest portem SFTP/SSH dla tego serwera."
             exit 1
           fi
-          echo "Port TCP jest osiągalny."
+          echo "Banner SSH wykryty."
 
       - name: Pobierz klucz hosta SSH
         env:
@@ -81,14 +91,18 @@ jobs:
           set -eu
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
-          echo "Pobieram klucz SSH z $SFTP_HOST:$SFTP_PORT"
-          if ! ssh-keyscan -T 10 -p "$SFTP_PORT" -H "$SFTP_HOST" 2>&1 | tee "$RUNNER_TEMP/ssh-keyscan.log" | grep -q "ssh-"; then
+          plik_kluczy="$RUNNER_TEMP/ssh-known-hosts"
+          if ! ssh-keyscan -T 10 -p "$SFTP_PORT" -H "$SFTP_HOST" > "$plik_kluczy" 2> "$RUNNER_TEMP/ssh-keyscan.log"; then
             cat "$RUNNER_TEMP/ssh-keyscan.log"
-            echo "::error::Port TCP odpowiada, ale serwer nie zwrócił klucza SSH."
+            echo "::error::Nie udało się pobrać klucza SSH."
             exit 1
           fi
-          ssh-keyscan -T 10 -p "$SFTP_PORT" -H "$SFTP_HOST" >> "$HOME/.ssh/known_hosts" 2>/dev/null
-          test -s "$HOME/.ssh/known_hosts"
+          if ! grep -q "ssh-" "$plik_kluczy"; then
+            cat "$RUNNER_TEMP/ssh-keyscan.log"
+            echo "::error::Serwer nie zwrócił klucza SSH."
+            exit 1
+          fi
+          cat "$plik_kluczy" >> "$HOME/.ssh/known_hosts"
           chmod 600 "$HOME/.ssh/known_hosts"
 
       - name: Wyślij node_modules przez SFTP
@@ -107,13 +121,13 @@ jobs:
           chmod 600 "$plik_konfig"
 
           {
-            printf 'set cmd:fail-exit yes\\n'
-            printf 'set sftp:auto-confirm yes\\n'
-            printf 'set net:timeout 20\\n'
-            printf 'set net:max-retries 2\\n'
-            printf 'open -u "%s","%s" sftp://%s:%s\\n' "$SFTP_USERNAME" "$SFTP_PASSWORD" "$SFTP_HOST" "$SFTP_PORT"
-            printf 'mirror --reverse --verbose --no-perms deploy/ /\\n'
-            printf 'bye\\n'
+            printf 'set cmd:fail-exit yes\n'
+            printf 'set sftp:auto-confirm yes\n'
+            printf 'set net:timeout 20\n'
+            printf 'set net:max-retries 2\n'
+            printf 'open -u "%s","%s" sftp://%s:%s\n' "$SFTP_USERNAME" "$SFTP_PASSWORD" "$SFTP_HOST" "$SFTP_PORT"
+            printf 'mirror --reverse --verbose --no-perms deploy/ /\n'
+            printf 'bye\n'
           } > "$plik_konfig"
 
           lftp -f "$plik_konfig"
