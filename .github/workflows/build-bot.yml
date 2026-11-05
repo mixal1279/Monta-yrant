@@ -51,12 +51,10 @@ jobs:
 
       - name: Dodaj klucz hosta SFTP
         env:
-          SFTP_HOST: ${{ secrets.SFTP_HOST }}
-          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+          SFTP_HOST: vps2.tofikhost.ovh
+          SFTP_PORT: "2022"
         run: |
           set -eu
-          test -n "$SFTP_HOST" || { echo "::error::Brak SFTP_HOST"; exit 1; }
-          test -n "$SFTP_PORT" || { echo "::error::Brak SFTP_PORT"; exit 1; }
           mkdir -p "$HOME/.ssh"
           chmod 700 "$HOME/.ssh"
           ssh-keyscan -p "$SFTP_PORT" -H "$SFTP_HOST" >> "$HOME/.ssh/known_hosts"
@@ -65,14 +63,12 @@ jobs:
 
       - name: Wyślij node_modules przez SFTP
         env:
-          SFTP_HOST: ${{ secrets.SFTP_HOST }}
-          SFTP_PORT: ${{ secrets.SFTP_PORT }}
+          SFTP_HOST: vps2.tofikhost.ovh
+          SFTP_PORT: "2022"
           SFTP_USERNAME: ${{ secrets.SFTP_USERNAME }}
           SFTP_PASSWORD: ${{ secrets.SFTP_PASSWORD }}
         run: |
           set -eu
-          test -n "$SFTP_HOST" || { echo "::error::Brak SFTP_HOST"; exit 1; }
-          test -n "$SFTP_PORT" || { echo "::error::Brak SFTP_PORT"; exit 1; }
           test -n "$SFTP_USERNAME" || { echo "::error::Brak SFTP_USERNAME"; exit 1; }
           test -n "$SFTP_PASSWORD" || { echo "::error::Brak SFTP_PASSWORD"; exit 1; }
 
@@ -81,13 +77,13 @@ jobs:
           chmod 600 "$plik_konfig"
 
           {
-            printf 'set cmd:fail-exit yes\n'
-            printf 'set sftp:auto-confirm yes\n'
-            printf 'set net:timeout 20\n'
-            printf 'set net:max-retries 2\n'
-            printf 'open -u "%s","%s" sftp://%s:%s\n' "$SFTP_USERNAME" "$SFTP_PASSWORD" "$SFTP_HOST" "$SFTP_PORT"
-            printf 'mirror --reverse --verbose --no-perms deploy/ /\n'
-            printf 'bye\n'
+            printf 'set cmd:fail-exit yes\\n'
+            printf 'set sftp:auto-confirm yes\\n'
+            printf 'set net:timeout 20\\n'
+            printf 'set net:max-retries 2\\n'
+            printf 'open -u "%s","%s" sftp://%s:%s\\n' "$SFTP_USERNAME" "$SFTP_PASSWORD" "$SFTP_HOST" "$SFTP_PORT"
+            printf 'mirror --reverse --verbose --no-perms deploy/ /\\n'
+            printf 'bye\\n'
           } > "$plik_konfig"
 
           lftp -f "$plik_konfig"
